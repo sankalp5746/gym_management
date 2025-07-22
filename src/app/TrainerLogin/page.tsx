@@ -1,58 +1,124 @@
-'use client';
+'use client'
+import { useState, useEffect, FormEvent } from 'react'
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+interface User {
+    id: number
+    name: string
+    phoneNumber: string
+}
 
-const TrainerLogin = () => {
-  const router = useRouter();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+export default function UserForm() {
+    const [name, setName] = useState<string>('')
+    const [phoneNumber, setPhoneNumber] = useState<string>('')
+    const [users, setUsers] = useState<User[]>([])
 
-  const handleSubmit = () => {
-    if (!name.trim() || !phone.trim()) {
-      alert('Please fill in both Name and Phone Number.');
-      return;
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+
+        const response = await fetch('/api/Trainer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phoneNumber }),
+        })
+
+        if (response.ok) {
+            setName('')
+            setPhoneNumber('')
+            fetchUsers()
+        }
     }
 
-    router.push('/TrainerPage');
-  };
+    const fetchUsers = async () => {
+        const response = await fetch('/api/Trainer')
+        if (response.ok) {
+            const data: User[] = await response.json()
+            setUsers(data)
+        }
+    }
 
-  return (
-    <div className="flex justify-center items-center mt-10">
-      <div className="border-2 border-black rounded-xl px-10 py-8 w-full max-w-md shadow-md space-y-6">
-        <h2 className="text-2xl font-bold text-center">Trainer Login</h2>
+    const handleDelete = async (id: number) => {
+        const response = await fetch(`/api/Trainer/${id}`, {
+            method: 'DELETE',
+        })
 
-        <div>
-          <label className="block text-lg font-medium mb-1">Name:</label>
-          <input
-            type="text"
-            placeholder="Enter Your Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="border-2 border-gray-300 rounded-md w-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        if (response.ok) {
+            fetchUsers()
+            alert("User Deleted Successfully");
+        } else {
+            alert('Failed to delete user');
+        }
+    }
+
+    const handleUpdate = async(id:number) =>{
+        const response = await fetch(`/api/Trainer/${id}`, {
+            method: 'UPDATE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phoneNumber }),
+        })
+
+
+    }
+
+    useEffect(() => {
+        fetchUsers()
+    }, [])
+
+    return (
+        <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg space-y-6">
+            <h2 className="text-2xl font-bold text-center text-gray-800">Add New Trainer</h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                    type="text"
+                    placeholder="Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                />
+                <input
+                    type="text"
+                    placeholder="Phone Number"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                />
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                    Add Trainer
+                </button>
+            </form>
+
+            <div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">User List:</h3>
+                {users.length === 0 ? (
+                    <p className="text-gray-500">No users found.</p>
+                ) : (
+                    <ul className="space-y-2">
+                        {users.map((user) => (
+                            <li key={user.id} className="flex justify-between items-center border-b pb-1 text-gray-800">
+                                <span>{user.name}</span>
+                                <span>{user.phoneNumber}</span>
+                                <button
+                                    onClick={() => handleDelete(user.id)}
+                                    className="bg-red-600 text-white text-sm px-2 py-1 rounded hover:bg-red-700 transition"
+                                >
+                                    Delete
+                                </button>
+                                <button
+                                    onClick={() => handleUpdate(user.id)}
+                                    className="bg-blue-500 text-black text-sm px-2 py-1 rounded hover:bg-blue-700 transition"
+                                >
+                                    Update
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-1">Phone Number:</label>
-          <input
-            type="text"
-            placeholder="Enter Your Phone Number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="border-2 border-gray-300 rounded-md w-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full"
-          onClick={handleSubmit}
-        >
-          Submit
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default TrainerLogin;
+    )
+}

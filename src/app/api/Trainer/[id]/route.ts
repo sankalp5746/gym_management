@@ -27,27 +27,27 @@ export async function DELETE(
 }
 
 // Update Route
+export async function PUT(
+    req: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const userId = parseInt(params.id, 10)
 
-// export async function UPDATE(
-//     req:NextRequest,
-//     { params } : { params : { id:string } },
-// ){
+    if (isNaN(userId)) {
+        return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
+    }
 
-// const userId=parseInt(params.id,10)
+    try {
+        const data = await req.json()
 
-// if (isNaN(userId)) {
-//         return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
-//     }
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data, // This assumes your data matches the Prisma user schema
+        })
 
-//     try {
-//         await prisma.user.update({
-//             where: { id: userId },
-//         })
-
-//     catch(error){
-//         console.log("User Cant Be Updated");
-//         return NextResponse.json({ error: 'Failed to Update user' }, { status: 500 })
-
-//     }
-
-// }
+        return NextResponse.json({ message: 'User updated successfully', user: updatedUser }, { status: 200 })
+    } catch (error) {
+        console.error('Error updating user:', error)
+        return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
+    }
+}

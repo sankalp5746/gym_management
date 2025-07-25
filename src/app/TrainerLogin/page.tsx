@@ -43,20 +43,33 @@ export default function UserForm() {
 
         if (response.ok) {
             fetchUsers()
-            alert("User Deleted Successfully");
+            alert("User Deleted Successfully")
         } else {
-            alert('Failed to delete user');
+            alert('Failed to delete user')
         }
     }
 
-    const handleUpdate = async(id:number) =>{
-        const response = await fetch(`/api/Trainer/${id}`, {
-            method: 'UPDATE',
+    const handleUpdate = async (user: User) => {
+        const newName = prompt("Enter new name:", user.name)
+        const newPhone = prompt("Enter new phone number:", user.phoneNumber)
+
+        if (!newName || !newPhone) {
+            alert("Update cancelled or invalid input.")
+            return
+        }
+
+        const response = await fetch(`/api/Trainer/${user.id}`, {
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, phoneNumber }),
+            body: JSON.stringify({ name: newName, phoneNumber: newPhone }),
         })
 
-
+        if (response.ok) {
+            fetchUsers()
+            alert("User Updated Successfully")
+        } else {
+            alert('Failed to update user')
+        }
     }
 
     useEffect(() => {
@@ -66,7 +79,7 @@ export default function UserForm() {
     return (
         <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg space-y-6">
             <h2 className="text-2xl font-bold text-center text-gray-800">Add New Trainer</h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                     type="text"
@@ -100,20 +113,23 @@ export default function UserForm() {
                     <ul className="space-y-2">
                         {users.map((user) => (
                             <li key={user.id} className="flex justify-between items-center border-b pb-1 text-gray-800">
-                                <span>{user.name}</span>
-                                <span>{user.phoneNumber}</span>
-                                <button
-                                    onClick={() => handleDelete(user.id)}
-                                    className="bg-red-600 text-white text-sm px-2 py-1 rounded hover:bg-red-700 transition"
-                                >
-                                    Delete
-                                </button>
-                                <button
-                                    onClick={() => handleUpdate(user.id)}
-                                    className="bg-blue-500 text-black text-sm px-2 py-1 rounded hover:bg-blue-700 transition"
-                                >
-                                    Update
-                                </button>
+                                <div>
+                                    <span className="font-medium">{user.name}</span> - <span>{user.phoneNumber}</span>
+                                </div>
+                                <div className="space-x-2">
+                                    <button
+                                        onClick={() => handleDelete(user.id)}
+                                        className="bg-red-600 text-white text-sm px-2 py-1 rounded hover:bg-red-700 transition"
+                                    >
+                                        Delete
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdate(user)}
+                                        className="bg-blue-500 text-white text-sm px-2 py-1 rounded hover:bg-blue-700 transition"
+                                    >
+                                        Update
+                                    </button>
+                                </div>
                             </li>
                         ))}
                     </ul>

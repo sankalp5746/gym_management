@@ -18,3 +18,8 @@ model User {
   name        String
   phoneNumber String
 }
+model Users {
+  id          Int     @id @default(autoincrement())
+  uname       String
+  password    String
+}

@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { useDynamicRouteParams } from 'next/dist/server/app-render/dynamic-rendering';
 
+interface RouteParams {
+  params: {
+    id: string;
+  };
+}
 // Delete Route
-export async function DELETE(
+export async function  DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
-) {
-    console.log("Received DELETE request for ID:", params.id)
+    context: RouteParams
+):Promise<NextResponse> {
 
-    const userId = parseInt(params.id, 10)
+  const param = await context.params;
+  const userId = parseInt(param.id);
 
     if (isNaN(userId)) {
         return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
@@ -29,9 +35,10 @@ export async function DELETE(
 // Update Route
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
-) {
-    const userId = parseInt(params.id, 10)
+    context:RouteParams
+):Promise<NextResponse> {
+  const param = await context.params;
+  const userId = parseInt(param.id);
 
     if (isNaN(userId)) {
         return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
